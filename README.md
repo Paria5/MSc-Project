@@ -1,2 +1,2 @@
 # MSc-Project
-This is the code for my Msc project
+This is the code for my Msc project.
