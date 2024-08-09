@@ -24,7 +24,7 @@ bit_stream_tx = randi([0 1], numBits, numTx);
 
 % Define modulation schemes and their corresponding orders
 modulationSchemes = {'qam', 'psk'};
-modulationOrders = struct('qam', [4, 16, 256], 'psk', [2, 4, 16]);
+modulationOrders = struct('qam',64, 'psk',8);
 
 % Initialize results storage
 results = struct();
@@ -114,7 +114,7 @@ for schemeIdx = 1:length(modulationSchemes)
         average_snr_dB = mean(snr_dB, 1);
 
         %% Demodulate and Calculate BER
-        demodulated_bits = demodulation(received_with_noise, modScheme, M);
+        demodulated_bits = demodulation(received_with_noise, modScheme, M,numBits);
         
         ber = zeros(numDistances, 1);
         throughput = zeros(numDistances, 1);
@@ -139,7 +139,7 @@ for schemeIdx = 1:length(modulationSchemes)
         % Interpolation to get smooth curve
         interpDistances = linspace(min(distances), max(distances), 100);  % 100 points for smooth curve
         interpoMethod='pchip';
-        interpSNR = interp1(distances, snr_values, interpDistances, interpMethod);
+        interpSNR = interp1(distances, snr_values, interpDistances, interpoMethod);
         subplot(length(modulationSchemes), length(orders), (schemeIdx-1)*length(orders) + orderIdx);
         plot(distances, snr_values, 'o', interpDistances, interpSNR, '-'); 
         title([modScheme ' M' num2str(M)]);
