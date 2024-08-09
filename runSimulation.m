@@ -26,7 +26,7 @@ bit_stream_tx = randi([0 1], numBits, numTx);
 
 % Define modulation schemes and their corresponding orders
 modulationSchemes = {'qam', 'psk'};
-modulationOrders = struct('qam', [4, 16, 256], 'psk', [2, 4, 16]);
+modulationOrders = struct('qam', [4, 16,64, 256], 'psk', [2, 4,8, 16]);
 
 % Initialize results storage
 results = struct();
@@ -115,7 +115,7 @@ for schemeIdx = 1:length(modulationSchemes)
         average_snr_dB = mean(snr_dB, 1);
 
        %% Demodulate and Calculate BER
-        demodulated_bits = demodulation(received_with_noise, modScheme, M);
+        demodulated_bits = demodulation(received_with_noise, modScheme, M,numBits);
         
         ber = zeros(numDistances, 1);
         throughput = zeros(numDistances, 1);
@@ -209,7 +209,7 @@ for schemeIdx = 1:length(modulationSchemes)
         hold on;
         
         %% Calculate BER and Throughput for 1 RIS
-        demodulated_bits_1RIS = demodulation(ylos1ris, modScheme, M);
+        demodulated_bits_1RIS = demodulation(ylos1ris, modScheme, M,numBits);
         
         ber_1RIS = zeros(numDistances, 1);
         throughput_1RIS = zeros(numDistances, 1);
@@ -256,7 +256,7 @@ for schemeIdx = 1:length(modulationSchemes)
         hold off;
 
         %% Calculate BER and Throughput for 2 RIS
-        demodulated_bits_2RIS = demodulation(ylos2ris, modScheme, M);
+        demodulated_bits_2RIS = demodulation(ylos2ris, modScheme, M,numBits);
         
         ber_2RIS = zeros(numDistances, 1);
         throughput_2RIS = zeros(numDistances, 1);
