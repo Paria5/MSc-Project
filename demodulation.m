@@ -1,5 +1,5 @@
-function bit_stream = demodulation(modulated_signal, modulation_type, M)
-    [numSymbols, numTx, numUsers] = size(modulated_signal);
+function bit_stream = demodulation(modulated_signal, modulation_type, M,numBitsOriginal)
+    [numSymbols, numTx, numDistance] = size(modulated_signal);
     bitsPerSymbol = log2(M);
     
     % Validate inputs
@@ -8,13 +8,13 @@ function bit_stream = demodulation(modulated_signal, modulation_type, M)
     
     % Initialize matrix for demodulated bits
     numBits = numSymbols * bitsPerSymbol;
-    bit_stream = zeros(numBits, numTx, numUsers); 
+    bit_stream = zeros(numBitsOriginal, numTx, numDistance); 
 
     % Process each user's signal
-    for userIdx = 1:numUsers
+    for disIdx = 1:numDistance
         for tx = 1:numTx
             % Extract the current column (transmitter) for the current user
-            current_modulated_signal = modulated_signal(:, tx, userIdx);
+            current_modulated_signal = modulated_signal(:, tx, disIdx);
 
             % Perform demodulation based on type
             if strcmp(modulation_type, 'psk') % PSK demodulation
@@ -30,19 +30,15 @@ function bit_stream = demodulation(modulated_signal, modulation_type, M)
             bitStreamArray = bitStreamArray(:); % Flatten the array
 
             % Ensure the bit stream array has the correct number of bits
-            if length(bitStreamArray) > numBits
-                bitStreamArray = bitStreamArray(1:numBits); % Trim extra bits
-            elseif length(bitStreamArray) < numBits
-                bitStreamArray = [bitStreamArray; zeros(numBits - length(bitStreamArray), 1)]; % Pad with zeros if necessary
+            if length(bitStreamArray) > numBitsOriginal
+                bitStreamArray = bitStreamArray(1:numBitsOriginal); % Trim extra bits
+            elseif length(bitStreamArray) < numBitsOriginal
+                error('Demodulated bit stream is shorter than expected. Something went wrong.');
             end
 
             % Assign to the output bit stream
-            bit_stream(:, tx, userIdx) = bitStreamArray;
+            bit_stream(:, tx, disIdx) = bitStreamArray;
 
-            % Debugging information
-            disp(['User ', num2str(userIdx), ', Tx ', num2str(tx), ':']);
-            disp(['Expected number of bits: ', num2str(numBits)]);
-            disp(['Actual number of bits: ', num2str(length(bitStreamArray))]);
         end
     end
 end
