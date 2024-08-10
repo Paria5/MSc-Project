@@ -41,7 +41,7 @@ for schemeIdx = 1:length(modulationSchemes)
         
         %for each coding rate
      for rateIdx=1:length(codingRates)
-            codingRate=codingRates(rateIdx);
+           codingRate=codingRates(rateIdx);
             
         % Reshape the bit stream to fit the modulator
         bit_stream_tx_reshaped = reshape(bit_stream_tx, [], numTx);
@@ -139,9 +139,10 @@ for schemeIdx = 1:length(modulationSchemes)
         end
 
         %% Store Results without RIS
-        results.(modScheme).(['M' num2str(M)]).(['codingRate' num2str(codingRate)]).SNR_NoRIS = average_snr_dB;
-        results.(modScheme).(['M' num2str(M)]).(['codingRate' num2str(codingRate)]).BER = ber;
-        results.(modScheme).(['M' num2str(M)]).(['codingRate' num2str(codingRate)]).Throughput = throughput;
+        codingRateFieldName = sprintf('codingRate%.0f', codingRate * 100); % Format codingRate as a valid field name
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_NoRIS = average_snr_dB;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER = ber;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput = throughput;
 
         %% Plot SNR vs Distance
         snr_values = average_snr_dB;
