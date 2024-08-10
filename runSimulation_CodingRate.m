@@ -233,9 +233,9 @@ for schemeIdx = 1:length(modulationSchemes)
         end
 
         %% Store Results with 1 RIS
-        results.(modScheme).(['M' num2str(M)]).SNR_1RIS = meanSNR_with1RIS;
-        results.(modScheme).(['M' num2str(M)]).BER_1RIS = ber_1RIS;
-        results.(modScheme).(['M' num2str(M)]).Throughput_1RIS = throughput_1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_1RIS = meanSNR_with1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER_1RIS = ber_1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput_1RIS = throughput_1RIS;
 
         %% Add one more RIS
         x_ris_in2 = zeros(numbSymbols, numRx, numDistances);
@@ -280,9 +280,9 @@ for schemeIdx = 1:length(modulationSchemes)
         end
 
         %% Store Results with 2 RIS
-        results.(modScheme).(['M' num2str(M)]).SNR_2RIS = meanSNR_with2RIS;
-        results.(modScheme).(['M' num2str(M)]).BER_2RIS = ber_2RIS;
-        results.(modScheme).(['M' num2str(M)]).Throughput_2RIS = throughput_2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_2RIS = meanSNR_with2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER_2RIS = ber_2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput_2RIS = throughput_2RIS;
     end
     end
 end
