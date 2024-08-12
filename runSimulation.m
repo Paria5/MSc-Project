@@ -261,7 +261,8 @@ for schemeIdx = 1:length(modulationSchemes)
 end
 save('simulation_results.mat', 'results');
 plotResults(results,distances,codingRates);
-plotBERvsSNR(results,distances);
-plotThroughputvsSNR(results,distances);
+generateSNRTable(results, distances, modulationSchemes, modulationOrders, codingRates, 'SNR_results.csv');
+%plotBERvsSNR(results,distances);
+%plotThroughputvsSNR(results,distances);
 sgtitle('SNR vs Distance for Different Modulation Schemes and Orders');
 end
