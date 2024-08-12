@@ -286,6 +286,6 @@ for schemeIdx = 1:length(modulationSchemes)
     end
     end
 end
-
+save('simulation_results.mat', 'results');
 sgtitle('SNR vs Distance for Different Modulation Schemes and Orders');
 end
