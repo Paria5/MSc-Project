@@ -10,7 +10,7 @@ function results = runSimulation(numUsers,numTx,ris1x,ris1y, ris1z, ris2x, ris2y
     fs = 10e6;
 c = physconst('lightspeed');
 lambda = c/ fc;
-distances = 100:4:299;  % Generate random distances between 100 and 300 meters
+distances = 100:20:299;  % Generate random distances between 100 and 300 meters
 numDistances=length(distances);
 meanShadowing_dB = 0;      % Mean shadowing in dB
 stdShadowing_dB = 4;       % Standard deviation of shadowing in dB
@@ -27,6 +27,7 @@ bit_stream_tx = randi([0 1], numBits, numTx);
 % Define modulation schemes and their corresponding orders
 modulationSchemes = {'qam', 'psk'};
 modulationOrders = struct('qam', [4, 16,64, 256], 'psk', [2, 4,8, 16]);
+codingRates = [1/2, 2/3, 3/4];
 
 % Initialize results storage
 results = struct();
@@ -38,13 +39,17 @@ for schemeIdx = 1:length(modulationSchemes)
     for orderIdx = 1:length(orders)
         M = orders(orderIdx);
         
+        %for each coding rate
+     for rateIdx=1:length(codingRates)
+           codingRate=codingRates(rateIdx);
+            
         % Reshape the bit stream to fit the modulator
         bit_stream_tx_reshaped = reshape(bit_stream_tx, [], numTx);
         
         % Modulate the bit stream
         modulated_tx = [];
         for tx = 1:numTx
-            modulated_tx = [modulated_tx, modulation(bit_stream_tx_reshaped(:, tx), modScheme, M)];
+            modulated_tx = [modulated_tx, modulation(bit_stream_tx_reshaped(:, tx), modScheme, M,codingRate)];
         end
         
         % Normalize the modulated signal
@@ -53,6 +58,7 @@ for schemeIdx = 1:length(modulationSchemes)
         
         % Transmited signal
         xt = xt1*sqrt(desiredPower_Watts/numUsers);
+        transmitted_pow_PU=bandpower(xt);
         numbSymbols = length(xt(:,1));
 
         %% Path Loss Initialization
@@ -115,8 +121,8 @@ for schemeIdx = 1:length(modulationSchemes)
         average_snr_dB = mean(snr_dB, 1);
 
        %% Demodulate and Calculate BER
-        demodulated_bits = demodulation(received_with_noise, modScheme, M,numBits);
-        
+        demodulated_bits = demodulation(received_with_noise, modScheme, M,numBits,codingRate);
+       
         ber = zeros(numDistances, 1);
         throughput = zeros(numDistances, 1);
         tx_bits = bit_stream_tx(:, :);
@@ -127,28 +133,16 @@ for schemeIdx = 1:length(modulationSchemes)
             total_bits = numel(tx_bits);
             ber(disIdx) = bit_errors / total_bits;
             data_rate = log2(M);
-            throughput(disIdx) = data_rate * (1 - ber(disIdx));
+            % Effective data rate considering the coding rate
+            effective_data_rate = data_rate * (1 - codingRate);
+            throughput(disIdx) = effective_data_rate * (1 - ber(disIdx));
         end
 
         %% Store Results without RIS
-        results.(modScheme).(['M' num2str(M)]).SNR_NoRIS = average_snr_dB;
-        results.(modScheme).(['M' num2str(M)]).BER = ber;
-        results.(modScheme).(['M' num2str(M)]).Throughput = throughput;
-
-        %% Plot SNR vs Distance
-        snr_values = average_snr_dB;
-        % Interpolation to get smooth curve
-        interpDistances = linspace(min(distances), max(distances), 100);  % 100 points for smooth curve
-        interpMethod = 'pchip';
-        interpSNR = interp1(distances, snr_values, interpDistances, interpMethod);
-        subplot(length(modulationSchemes), length(orders), (schemeIdx-1)*length(orders) + orderIdx);
-        plot(distances, snr_values, 'o', interpDistances, interpSNR, '-'); 
-        title([modScheme ' M' num2str(M)]);
-        xlabel('Distance (m)');
-        ylabel('SNR (dB)');
-        legend('Without RIS');
-        grid on;
-        hold on;
+        codingRateFieldName = sprintf('codingRate%.0f', codingRate * 100); % Format codingRate as a valid field name
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_NoRIS = average_snr_dB;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER = ber;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput = throughput;
 
         %% RIS Setup
         Nr = 10;
@@ -202,14 +196,9 @@ for schemeIdx = 1:length(modulationSchemes)
             end
         end
         meanSNR_with1RIS = mean(SNRlos1ris, 1);
-        % Interpolation to get smooth curve
-        interpSNR_1RIS = interp1(distances, meanSNR_with1RIS, interpDistances, interpMethod);
-        plot(distances, meanSNR_with1RIS, 'o', interpDistances, interpSNR_1RIS, '-'); % Red dashed line for the new SNR with RIS
-        legend('Without RIS', '1 RIS');
-        hold on;
         
         %% Calculate BER and Throughput for 1 RIS
-        demodulated_bits_1RIS = demodulation(ylos1ris, modScheme, M,numBits);
+        demodulated_bits_1RIS = demodulation(ylos1ris, modScheme, M,numBits,codingRate);
         
         ber_1RIS = zeros(numDistances, 1);
         throughput_1RIS = zeros(numDistances, 1);
@@ -223,9 +212,9 @@ for schemeIdx = 1:length(modulationSchemes)
         end
 
         %% Store Results with 1 RIS
-        results.(modScheme).(['M' num2str(M)]).SNR_1RIS = meanSNR_with1RIS;
-        results.(modScheme).(['M' num2str(M)]).BER_1RIS = ber_1RIS;
-        results.(modScheme).(['M' num2str(M)]).Throughput_1RIS = throughput_1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_1RIS = meanSNR_with1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER_1RIS = ber_1RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput_1RIS = throughput_1RIS;
 
         %% Add one more RIS
         x_ris_in2 = zeros(numbSymbols, numRx, numDistances);
@@ -249,14 +238,8 @@ for schemeIdx = 1:length(modulationSchemes)
             end
         end
         meanSNR_with2RIS = mean(SNRlos2ris, 1);
-        % Interpolation to get smooth curve
-        interpSNR_2RIS = interp1(distances, meanSNR_with2RIS, interpDistances, interpMethod);
-        plot(distances, meanSNR_with2RIS, 'o', interpDistances, interpSNR_2RIS, '-');
-        legend('Without RIS', '1 RIS', '2 RIS');
-        hold off;
-
         %% Calculate BER and Throughput for 2 RIS
-        demodulated_bits_2RIS = demodulation(ylos2ris, modScheme, M,numBits);
+        demodulated_bits_2RIS = demodulation(ylos2ris, modScheme, M,numBits,codingRate);
         
         ber_2RIS = zeros(numDistances, 1);
         throughput_2RIS = zeros(numDistances, 1);
@@ -270,11 +253,13 @@ for schemeIdx = 1:length(modulationSchemes)
         end
 
         %% Store Results with 2 RIS
-        results.(modScheme).(['M' num2str(M)]).SNR_2RIS = meanSNR_with2RIS;
-        results.(modScheme).(['M' num2str(M)]).BER_2RIS = ber_2RIS;
-        results.(modScheme).(['M' num2str(M)]).Throughput_2RIS = throughput_2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).SNR_2RIS = meanSNR_with2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).BER_2RIS = ber_2RIS;
+        results.(modScheme).(['M' num2str(M)]).(codingRateFieldName).Throughput_2RIS = throughput_2RIS;
+    end
     end
 end
-
+save('simulation_results.mat', 'results');
+plotResults(results,distances,codingRates);
 sgtitle('SNR vs Distance for Different Modulation Schemes and Orders');
 end
