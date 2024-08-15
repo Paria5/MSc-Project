@@ -4,3 +4,4 @@ In this version. the results will also be stored at the end of the code in a .ma
 ber and throughput graphs need refining.
 
 MCS indexes without RIS has been obtained
+MCS indexing is corrected.
