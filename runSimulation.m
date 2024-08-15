@@ -25,8 +25,8 @@ numBits = 1000;
 bit_stream_tx = randi([0 1], numBits, numTx);
 
 % Define modulation schemes and their corresponding orders
-modulationSchemes = {'qam', 'psk'};
-modulationOrders = struct('qam', [4, 16,64, 256], 'psk', [2, 4,8, 16]);
+modulationSchemes = {'psk', 'qam'};
+modulationOrders = struct('psk', [2, 4],'qam', [16,64,256]);
 codingRates = [1/2, 2/3, 3/4];
 
 % Initialize results storage
@@ -261,7 +261,8 @@ for schemeIdx = 1:length(modulationSchemes)
 end
 save('simulation_results.mat', 'results');
 plotResults(results,distances,codingRates);
-generateSNRTable(results, distances, modulationSchemes, modulationOrders, codingRates, 'SNR_results.csv');
+allSNRsSorted=extractAndSortSNR(results);
+generateSNRTable(results,allSNRsSorted, 'SNR_results.csv');
 %plotBERvsSNR(results,distances);
 %plotThroughputvsSNR(results,distances);
 sgtitle('SNR vs Distance for Different Modulation Schemes and Orders');
