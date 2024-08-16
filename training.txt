@@ -41,3 +41,36 @@ predicted_snr = model.predict(new_mcs_index)
 print(f'Predicted SNR for MCS index 4: {predicted_snr[0]:.2f}')
 throughput=10e6*np.log2(1+10**(predicted_snr/10))
 print(f"Predicted Throughput: {throughput} bps")
+# Plot 1: Actual vs. Predicted SNR
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, y_pred, edgecolor='k', alpha=0.7)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)  # Line showing perfect prediction
+plt.xlabel('Actual SNR')
+plt.ylabel('Predicted SNR')
+plt.title('Actual vs. Predicted SNR')
+plt.show()
+import numpy as np
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, y_pred, edgecolor='k', alpha=0.7)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)  # Line showing perfect prediction
+plt.xlabel('Actual SNR')
+plt.ylabel('Predicted SNR')
+plt.title('Actual vs. Predicted SNR')
+plt.show()
+# Plot 2: Residuals Plot
+residuals = y_test - y_pred
+plt.figure(figsize=(10, 6))
+plt.scatter(y_pred, residuals, edgecolor='k', alpha=0.7)
+plt.axhline(0, color='red', linestyle='--', linewidth=2)
+plt.xlabel('Predicted SNR')
+plt.ylabel('Residuals')
+plt.title('Residuals Plot')
+plt.show()
+# Plot 3: Distribution of Residuals using Matplotlib
+plt.figure(figsize=(10, 6))
+plt.hist(residuals, bins=30, edgecolor='k', alpha=0.7)
+plt.xlabel('Residuals')
+plt.ylabel('Frequency')
+plt.title('Distribution of Residuals')
+plt.show()
