@@ -1,0 +1,64 @@
+# Step 1: Install required libraries (if not already installed)
+!pip install ipywidgets
+
+# Step 2: Import necessary libraries
+import numpy as np
+import pandas as pd
+import ipywidgets as widgets
+from IPython.display import display
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
+
+# Step 3: Load your dataset
+# Ensure your 'SNR_results.csv' file is uploaded to Colab
+from google.colab import files
+uploaded = files.upload()
+
+# Load the dataset
+df = pd.read_csv('SNR_results.csv')
+
+# Step 4: Prepare the data
+snr_columns = df.columns[:15]  # SNR columns
+data = []
+
+for _, row in df.iterrows():
+    for i, snr in enumerate(row[:15]):
+        data.append([i + 1, snr])  # i + 1 represents the MCS index (assuming 1-based index)
+
+# Convert to DataFrame
+df_long = pd.DataFrame(data, columns=['MCS_index', 'SNR'])
+
+X = df_long[['MCS_index']]  # MCS index as feature
+y = df_long['SNR']  # SNR as target
+
+# Step 5: Train the Gradient Boosting Regressor with the best parameters
+model = GradientBoostingRegressor(n_estimators=200, learning_rate=0.2, random_state=42)
+model.fit(X, y)
+
+# Function to calculate throughput based on SNR and bandwidth
+def calculate_throughput(snr, bandwidth):
+    return snr * bandwidth * 1e6  # Example formula, you can adjust as needed
+
+# Step 6: Create a GUI using ipywidgets
+def on_button_click(b):
+    mcs_index = int(mcs_slider.value)
+    bandwidth = int(bandwidth_dropdown.value)
+    
+    predicted_snr = model.predict([[mcs_index]])[0]
+    throughput = calculate_throughput(predicted_snr, bandwidth)
+    
+    output.clear_output()
+    with output:
+        print(f'Predicted SNR for MCS Index {mcs_index}: {predicted_snr:.2f}')
+        print(f'Throughput: {throughput:.2f} bps for {bandwidth} MHz Bandwidth')
+
+mcs_slider = widgets.IntSlider(value=1, min=1, max=15, step=1, description='MCS Index:')
+bandwidth_dropdown = widgets.Dropdown(options=[10, 15, 20], value=10, description='Bandwidth (MHz):')
+
+button = widgets.Button(description="Calculate Throughput")
+button.on_click(on_button_click)
+
+output = widgets.Output()
+
+# Display the GUI
+display(mcs_slider, bandwidth_dropdown, button, output)
