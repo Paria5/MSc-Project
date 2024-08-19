@@ -262,7 +262,9 @@ end
 save('simulation_results.mat', 'results');
 plotResults(results,distances,codingRates);
 allSNRsSorted=extractAndSortSNR(results);
-generateSNRTable(results,allSNRsSorted, 'SNR_results.csv');
+generateSNRTable(results,allSNRsSorted, 'SNR_Nlos_results.csv');
+allSNRsSorted_RIS=extractAndSortSNRwithRIS(results);
+generateSNRTable(results,allSNRsSorted_RIS, 'SNR_RIS_results.csv');
 %plotBERvsSNR(results,distances);
 %plotThroughputvsSNR(results,distances);
 sgtitle('SNR vs Distance for Different Modulation Schemes and Orders');
